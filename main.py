@@ -1,14 +1,17 @@
 from PIL import Image, ImageDraw
-# https://habr.com/post/163663/   https://azure.microsoft.com/ru-ru/services/cognitive-services/face/
-mode = int(input('mode:')) #Считываем номер преобразования.
-image = Image.open("face.jpg") #Открываем изображение.
-#Сделац открывание фото в цикле переменная со списка (скан репозитория)
+
+# https://habr.com/post/163663/
+# https://azure.microsoft.com/ru-ru/services/cognitive-services/face/
+# https://habr.com/post/301096/
+
+mode = int(input('mode:'))  # Считываем номер преобразования.
+image = Image.open("face.jpg")  # Открываем изображение.
+# Сделац открывание фото в цикле переменная со списка (скан репозитория)
 
 
 """
 1.c упрощением нахождение лица c упрощением
 """
-
 
 """
 2.тут действия проверки цвета губ,или очень розовые или очень красные,так же обводка глаз
@@ -22,11 +25,9 @@ image = Image.open("face.jpg") #Открываем изображение.
 4.упрощение картинки
 """
 
-
 """
 5.проверка усов
 """
-
 
 """
 6.проверка волос
