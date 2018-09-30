@@ -44,4 +44,4 @@ for face in faces:
     ax.axes.add_patch(p)
     plt.text(origin[0], origin[1], "%s, %d" % (fa["gender"].capitalize(), fa["age"]),
              fontsize=20, weight="bold", va="bottom")
-_ = plt.axis("off")
+    plt.axis("off")
