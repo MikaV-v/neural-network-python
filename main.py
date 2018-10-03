@@ -4,6 +4,17 @@
 # https://azure.microsoft.com/ru-ru/services/cognitive-services/face/
 # https://habr.com/post/301096/
 
+
+
+
+"""
+
+САМОЕ ГЛАВНОЕ ДОУСТАНОВИТЬ БИБЛИОТЕКУ OPENCV2
+"""
+
+
+
+
 # Импортируем необходимые модули
 import cv2, os
 import numpy as np
