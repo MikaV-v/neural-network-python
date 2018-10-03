@@ -1,39 +1,22 @@
-from PIL import Image, ImageDraw
-import numpy
-import cv2
+
+# https://habr.com/post/318846/
 # https://habr.com/post/163663/
 # https://azure.microsoft.com/ru-ru/services/cognitive-services/face/
 # https://habr.com/post/301096/
 
-mode = int(input('mode:'))  # Считываем номер преобразования.
-image = Image.open("face.jpg")  # Открываем изображение.
+# Импортируем необходимые модули
+import cv2, os
+import numpy as np
+from PIL import Image
+
+# Для детектирования лиц используем каскады Хаара
+cascadePath = "haarcascade_frontalface_default.xml"
+faceCascade = cv2.CascadeClassifier(cascadePath)
+
+# Для распознавания используем локальные бинарные шаблоны
+recognizer = cv2.createLBPHFaceRecognizer(1,8,8,8,123)
+
+
+#mode = int(input('mode:'))  # Считываем номер преобразования.
+#image = Image.open("face.jpg")  # Открываем изображение.
 # Сделац открывание фото в цикле переменная со списка (скан репозитория)
-
-
-"""
-1.c упрощением нахождение лица c упрощением
-"""
-
-"""
-2.тут действия проверки цвета губ,или очень розовые или очень красные,так же обводка глаз
-"""
-
-"""
-3. с упрощением проверка бровей
-"""
-
-"""
-4.упрощение картинки
-"""
-
-"""
-5.проверка усов
-"""
-
-"""
-6.проверка волос
-"""
-
-"""
-7.проколотость ушей
-"""
