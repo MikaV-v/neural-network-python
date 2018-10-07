@@ -8,11 +8,11 @@
 
 
 """
-САМОЕ ГЛАВНОЕ ДОУСТАНОВИТЬ БИБЛИОТЕКУ OPENCV2
+уже НЕ САМОЕ ГЛАВНОЕ ДОУСТАНОВИТЬ БИБЛИОТЕКУ OPENCV2
 """
 
 
-
+# https://habr.com/post/321834/ вот ствол
 
 # Импортируем необходимые модули
 from keras.preprocessing.image import ImageDataGenerator
@@ -32,7 +32,5 @@ import matplotlib.pyplot as plt
 
 
 
-inc_model=InceptionV3(include_top=False,
-                      weights='imagenet',
-                      input_shape=((3, 150, 150)))
+inc_model=InceptionV3(include_top=False,weights='imagenet',input_shape=((3, 150, 150)))
 # Сделац открывание фото в цикле переменная со списка (скан репозитория)
