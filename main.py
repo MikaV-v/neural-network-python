@@ -8,7 +8,6 @@
 
 
 """
-
 САМОЕ ГЛАВНОЕ ДОУСТАНОВИТЬ БИБЛИОТЕКУ OPENCV2
 """
 
@@ -16,18 +15,24 @@
 
 
 # Импортируем необходимые модули
-import cv2, os
+from keras.preprocessing.image import ImageDataGenerator
+from keras.models import Sequential, Model
+from keras.applications.inception_v3 import InceptionV3
+from keras.callbacks import ModelCheckpoint
+from keras.optimizers import SGD
+
+from keras import backend as K
+K.set_image_dim_ordering('th')
+
 import numpy as np
-from PIL import Image
+import pandas as pd
+import h5py
 
-# Для детектирования лиц используем каскады Хаара
-cascadePath = "haarcascade_frontalface_default.xml"
-faceCascade = cv2.CascadeClassifier(cascadePath)
-
-# Для распознавания используем локальные бинарные шаблоны
-recognizer = cv2.createLBPHFaceRecognizer(1,8,8,8,123)
+import matplotlib.pyplot as plt
 
 
-#mode = int(input('mode:'))  # Считываем номер преобразования.
-#image = Image.open("face.jpg")  # Открываем изображение.
+
+inc_model=InceptionV3(include_top=False,
+                      weights='imagenet',
+                      input_shape=((3, 150, 150)))
 # Сделац открывание фото в цикле переменная со списка (скан репозитория)
