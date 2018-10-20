@@ -1,39 +1,44 @@
 from PIL import Image, ImageDraw
-import numpy
-import cv2
+import numpy as np
+import cv2, os
+
+
 # https://habr.com/post/163663/
 # https://azure.microsoft.com/ru-ru/services/cognitive-services/face/
 # https://habr.com/post/301096/
 
-mode = int(input('mode:'))  # Считываем номер преобразования.
-image = Image.open("face.jpg")  # Открываем изображение.
+cascadePath = "haarcascade_frontalface_default.xml"
+
+faceCascade = cv2.CascadeClassifier(cascadePath)
+
+recoginizer = cv2.face.LBPHFaceRecognizer_create(1,8,8,8,123)
+
+# Для распознавания используем локальные бинарные шаблоны
+# Открываем изображение.
 # Сделац открывание фото в цикле переменная со списка (скан репозитория)
 
 
-"""
-1.c упрощением нахождение лица c упрощением
-"""
+def get_images(path):
+    # Ищем все фотографии и записываем их в image_paths
+    image_paths = [os.path.join(path, f) for f in os.listdir(path) if not f.endswith('.happy')]
 
-"""
-2.тут действия проверки цвета губ,или очень розовые или очень красные,так же обводка глаз
-"""
+    images = []
+    labels = []
 
-"""
-3. с упрощением проверка бровей
-"""
+    for image_path in image_paths:
+        # Переводим изображение в черно-белый формат и приводим его к формату массива
+        gray = Image.open(image_path).convert('L')
+        image = np.array(gray, 'uint8')
+        # Из каждого имени файла извлекаем номер человека, изображенного на фото
+        subject_number = int(os.path.split(image_path)[1].split(".")[0].replace("subject", ""))
 
-"""
-4.упрощение картинки
-"""
-
-"""
-5.проверка усов
-"""
-
-"""
-6.проверка волос
-"""
-
-"""
-7.проколотость ушей
-"""
+        # Определяем области где есть лица
+        faces = faceCascade.detectMultiScale(image, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+        # Если лицо нашлось добавляем его в список images, а соответствующий ему номер в список labels
+        for (x, y, w, h) in faces:
+            images.append(image[y: y + h, x: x + w])
+            labels.append(subject_number)
+            # В окне показываем изображение
+            cv2.imshow("", image[y: y + h, x: x + w])
+            cv2.waitKey(50)
+    return images, labels
