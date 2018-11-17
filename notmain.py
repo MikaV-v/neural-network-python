@@ -44,7 +44,7 @@ def get_images(path):
     return images, labels
 
 
-path = './yalefaces'
+path = './testingsearchphotos'
 # Получаем лица и соответствующие им номера
 images, labels = get_images(path)
 cv2.destroyAllWindows()
