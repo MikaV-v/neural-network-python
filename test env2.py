@@ -10,8 +10,16 @@ from PIL import Image, ImageDraw
 import numpy as np
 import cv2, os
 
-root = Tk()
-Button_status = Button(root, text = '4').pack(side = 'bottom')
+
+def ans(preds):
+    if preds > 0.5:
+        return "Woman"
+    else:
+        return "Man"
+
+
+
+
 
 sess = tf.InteractiveSession()
 datagen = ImageDataGenerator(rescale=1. / 255)
@@ -29,7 +37,8 @@ def nothing(x):
     pass
 rect = np.array([0,0,0,0])
 defa = np.array([0,0,0,0])
-raspoznai = np.array([0,0,0,0])
+ans_list=[]
+status = 1
 
 cap = cv2.VideoCapture(0)
 crop = cap
@@ -39,52 +48,92 @@ face_cascade = cv2.CascadeClassifier("haarcascade_frontalface_default.xml")
 cv2.namedWindow("Frame")
 cv2.createTrackbar("Neighbours", "Frame", 5, 20, nothing)
 
-nan = 0
+
+most_common=0
+def reset(event):
+    global ans_list, status, most_common
+    status = 0
+    spians_set = set(ans_list)
+    most_common = None
+    qty_most_common = 0
+    for item in spians_set:
+        qty = ans_list.count(item)
+        if qty > qty_most_common:
+            qty_most_common = qty
+            most_common = item
+    text.insert(1.0, most_common)
+    ans_list = []
+    status = 0
+    text.get('1.0', 'end')
+    text.tag_add('title', 1.0, '1.end')
+    text.tag_config('title', font=("Verdana", 60, 'bold'), justify=CENTER)
+    text.pack()
+
+def start(event):
+    global status
+    text.delete(1.0, END)
+    cap.release()
+    status = 1
+
+
+root = Tk()
+
+text = Text(width=50, height=40)
+
+Button_status_reset = Button(root, text = 'Show Answer', width=40, height=30)
+Button_status_start = Button(root, text = 'start', width=40, height=30)
+
+Button_status_start.bind('<Button-1>', start)
+Button_status_start.bind('<Return>', start)
+
+
+Button_status_reset.bind('<Button-1>', reset)
+Button_status_reset.bind('<Return>', reset)
+
+Button_status_start.pack()
+Button_status_reset.pack()
+text.pack()
+
+
+
 while True:
+    list_rect = rect.tolist()
+    rectizm = rect
+    _, frame = cap.read()
 
-    if nan < 7:
-        list_rect = rect.tolist()
-        rectizm = rect
-        _, frame = cap.read()
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    neighbours = cv2.getTrackbarPos("Neighbours", "Frame")
 
-        neighbours = cv2.getTrackbarPos("Neighbours", "Frame")
+    faces = face_cascade.detectMultiScale(gray, 1.3, neighbours)
+    for rect in faces:
+        (x, y, w, h) = rect
+        cv2.imshow("", frame[y: y + h, x: x + w])
+        frame = cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        cv2.imwrite('promeszh.jpg', frame[y: y + h, x: x + w])
+        img = image.load_img('promeszh.jpg', target_size=(150, 150))
+        x = image.img_to_array(img)
+        x = np.expand_dims(x, axis=0)
+        preds = model.predict(x)
+        print(ans(preds))
+        ans_list.append(ans(preds))
 
-        faces = face_cascade.detectMultiScale(gray, 1.3, neighbours)
-        for rect in faces:
-            (x, y, w, h) = rect
-            cv2.imshow("", frame[y: y + h, x: x + w])
-            #for_neero_site.append(frame[y: y + h, x: x + w])
-            frame = cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-            if Button_status is True:
-                cv2.imwrite(os.path.join('./buffer', str(nan) + '.jpg'), image[y: y + h, x: x + w])
-
-        cv2.imshow("Frame", frame)
-
-        key = cv2.waitKey(20)
-        if rect is rectizm:
-            rect = np.array([0, 0, 0, 0])
-
-        if key == 27:
-            break
-        print(rect.tolist())
-    nan += 1
+        #for_neero_site.append(frame[y: y + h, x: x + w])
+        os.remove("promeszh.jpg")
 
 
-image_paths = './buffer'
+    cv2.imshow("Frame", frame)
 
-img = image.load_img(2, target_size=(150, 150))
-x = image.img_to_array(img)
-x = np.expand_dims(x, axis=0)
-preds = model.predict(x)
-def ans(preds):
-    if preds > 0.5:
-        return "Woman"
-    else:
-        return "Man"
+    key = cv2.waitKey(100)
+    if rect is rectizm:
+        rect = np.array([0, 0, 0, 0])
 
+    if key == 27:
+        break
+    print(rect.tolist())
+    if most_common!=0:
+        print(most_common)
+    most_common = 0
 
-root.mainloop()
 cap.release()
 cv2.destroyAllWindows()

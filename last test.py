@@ -20,7 +20,7 @@ model.compile(loss="binary_crossentropy", optimizer="SGD", metrics=["accuracy"])
 #      target_size=(150, 150),
 #      batch_size=10,
 #      class_mode=None,
-#      shuffle=False
+#      shuffle=False      cv2.imwrite(os.path.join('./buffer', str(nan)+'.jpg'), image[y: y + h, x: x + w])
 #  )
 
 img = image.load_img('3.jpg', target_size=(150, 150))

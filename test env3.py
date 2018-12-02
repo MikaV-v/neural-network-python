@@ -1,25 +1,24 @@
-from cpuid import *
+import cv2
+import time
+import numpy as np
+import pyscreenshot as ImageGrab
+import pyautogui
 
-def _is_set(id, reg_idx, bit):
-    regs = cpuid(id)
 
-    if (1 << bit) & regs[reg_idx]:
-        return "Yes"
-    else:
-        return "--"
+def find_patt(image, patt, thres):
+  img_grey = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+  (patt_H, patt_W) = patt.shape[:2]
+  res = cv2.matchTemplate(img_grey, patt, cv2.TM_CCOEFF_NORMED)
+  loc = np.where(res>thres)
+  return patt_H, patt_W, zip(*loc[::-1])
 
-print("Vendor ID         : %s" % cpu_vendor())
-print("CPU name          : %s" % cpu_name())
-print("Microarchitecture : %s%s" % cpu_microarchitecture())
-print("Vector instructions supported:")
-print("SSE       : %s" % _is_set(1, 3, 25))
-print("SSE2      : %s" % _is_set(1, 3, 26))
-print("SSE3      : %s" % _is_set(1, 2, 0))
-print("SSSE3     : %s" % _is_set(1, 2, 9))
-print("SSE4.1    : %s" % _is_set(1, 2, 19))
-print("SSE4.2    : %s" % _is_set(1, 2, 20))
-print("SSE4a     : %s" % _is_set(0x80000001, 2, 6))
-print("AVX       : %s" % _is_set(1, 2, 28))
-print("AVX2      : %s" % _is_set(7, 1, 5))
-print("BMI1      : %s" % _is_set(7, 1, 3))
-print("BMI2      : %s" % _is_set(7, 1, 8))
+
+if __name__ == '__main__':
+  screenshot = ImageGrab.grab()
+  img = np.array(screenshot.getdata(), dtype='uint8').reshape((screenshot.size[1],screenshot.size[0],3))
+
+  patt = cv2.imread('butt01.png', 0)
+  h,w,points = find_patt(img, patt, 0.60)
+  if len(points)!=0:
+    pyautogui.moveTo(points[0][0]+w/2, points[0][1]+h/2)
+    pyautogui.click()
