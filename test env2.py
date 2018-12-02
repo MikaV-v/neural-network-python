@@ -9,7 +9,7 @@ from tkinter import *
 from PIL import Image, ImageDraw
 import numpy as np
 import cv2, os
-
+import time
 
 def ans(preds):
     if preds > 0.5:
@@ -109,9 +109,9 @@ while True:
         x = image.img_to_array(img)
         x = np.expand_dims(x, axis=0)
         preds = model.predict(x)
-        print(ans(preds))
+        #print(ans(preds))
         ans_list.append(ans(preds))
-        if len(ans_list) == 6:
+        if len(ans_list) == 21:
             ans_set = set(ans_list)
             most_common = None
             qty_most_common = 0
@@ -134,9 +134,25 @@ while True:
     if key == 27:
         break
     #print(rect.tolist())
-    if len(ans_list)==6:
+    if len(ans_list)==21:
         print("already answer:",most_common)
-        most_common = 0
+        most_common = []
+        ans_list = []
+        print('wati')
+        time.sleep(1)
+        print('wati.')
+        time.sleep(1)
+        print('wati..')
+        time.sleep(1)
+        print('wati...')
+        time.sleep(1)
+        print('wati....')
+        time.sleep(1)
+        print('wati.....')
+        time.sleep(1)
+        print('wati......')
+        time.sleep(1)
+
 
 cap.release()
 cv2.destroyAllWindows()
