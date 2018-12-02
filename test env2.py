@@ -17,10 +17,6 @@ def ans(preds):
     else:
         return "Man"
 
-
-
-
-
 sess = tf.InteractiveSession()
 datagen = ImageDataGenerator(rescale=1. / 255)
 json_file = open("mnist_model.json", "r")
@@ -29,7 +25,6 @@ json_file.close()
 model = model_from_json(loaded_model_json)
 model.load_weights("mnist_model.h5")
 model.compile(loss="binary_crossentropy", optimizer="SGD", metrics=["accuracy"])
-
 
 buffre_dir = './buffer'
 who_is_it = 'ME'
@@ -53,10 +48,10 @@ most_common=0
 def reset(event):
     global ans_list, status, most_common
     status = 0
-    spians_set = set(ans_list)
+    ans_set = set(ans_list)
     most_common = None
     qty_most_common = 0
-    for item in spians_set:
+    for item in ans_set:
         qty = ans_list.count(item)
         if qty > qty_most_common:
             qty_most_common = qty
@@ -94,8 +89,6 @@ Button_status_start.pack()
 Button_status_reset.pack()
 text.pack()
 
-
-
 while True:
     list_rect = rect.tolist()
     rectizm = rect
@@ -107,6 +100,7 @@ while True:
 
     faces = face_cascade.detectMultiScale(gray, 1.3, neighbours)
     for rect in faces:
+
         (x, y, w, h) = rect
         cv2.imshow("", frame[y: y + h, x: x + w])
         frame = cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
@@ -117,6 +111,15 @@ while True:
         preds = model.predict(x)
         print(ans(preds))
         ans_list.append(ans(preds))
+        if len(ans_list) == 6:
+            ans_set = set(ans_list)
+            most_common = None
+            qty_most_common = 0
+            for item in ans_set:
+                qty = ans_list.count(item)
+                if qty > qty_most_common:
+                    qty_most_common = qty
+                    most_common = item
 
         #for_neero_site.append(frame[y: y + h, x: x + w])
         os.remove("promeszh.jpg")
@@ -124,16 +127,16 @@ while True:
 
     cv2.imshow("Frame", frame)
 
-    key = cv2.waitKey(100)
+    key = cv2.waitKey(10)
     if rect is rectizm:
         rect = np.array([0, 0, 0, 0])
 
     if key == 27:
         break
-    print(rect.tolist())
-    if most_common!=0:
-        print(most_common)
-    most_common = 0
+    #print(rect.tolist())
+    if len(ans_list)==6:
+        print("already answer:",most_common)
+        most_common = 0
 
 cap.release()
 cv2.destroyAllWindows()
