@@ -1,83 +1,102 @@
-from keras.preprocessing.image import ImageDataGenerator
-from keras.models import Sequential, Model
-from keras.applications.inception_v3 import InceptionV3
-from keras.callbacks import ModelCheckpoint
-from keras.optimizers import SGD
-
-from keras import backend as K
-K.set_image_dim_ordering('th')
-
-import numpy as np
-import pandas as pd
-import h5py
-
-import matplotlib.pyplot as plt
+from tensorflow.python.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.python.keras.models import Sequential
+from tensorflow.python.keras.layers import Activation, Dropout, Flatten, Dense
+from tensorflow.python.keras.applications import VGG16
+from tensorflow.python.keras.optimizers import Adam
 
 
+# Каталог с данными для обучения
+train_dir = 'train'
+# Каталог с данными для проверки
+val_dir = 'val'
+# Каталог с данными для тестирования
+test_dir = 'test'
+# Размеры изображения
+img_width, img_height = 150, 150
+# Размерность тензора на основе изображения для входных данных в нейронную сеть
+# backend Tensorflow, channels_last
+input_shape = (img_width, img_height, 3)
+# Размер мини-выборки
+batch_size = 10
+nb_train_samples = 1260
+nb_validation_samples = 270
+nb_test_samples = 270
 
-inc_model=InceptionV3(include_top=False,
-                      weights='imagenet',
-                      input_shape=((3, 150, 150)))
+# Загружаем предварительно обученную нейронную сеть VGG16
+vgg16_net = VGG16(weights='imagenet', include_top=False,
+                  input_shape=(150, 150, 3))
 
-bottleneck_datagen = ImageDataGenerator(rescale=1. / 255)  # собственно, генератор
+# "Замораживаем" веса предварительно обученной нейронной сети VGG16
+vgg16_net.trainable = True
 
-train_generator = bottleneck_datagen.flow_from_directory('data/img_man/',
-                                                         target_size=(150, 150),
-                                                         batch_size=32,
-                                                         class_mode=None,
-                                                         shuffle=False)
-
-validation_generator = bottleneck_datagen.flow_from_directory('data/img_women/',
-                                                              target_size=(150, 150),
-                                                              batch_size=32,
-                                                              class_mode=None,
-                                                              shuffle=False)
+# Создаем составную нейронную сеть на основе VGG16
+# Создаем последовательную модель Keras
+model = Sequential()
+# Добавляем в модель сеть VGG16 вместо слоя
+model.add(vgg16_net)
+# Добавляем в модель новый классификатор
 
 
-bottleneck_features_train = inc_model.predict_generator(train_generator, 2000)
-np.save(open('bottleneck_features/bn_features_train.npy', 'wb'), bottleneck_features_train)
 
-bottleneck_features_validation = inc_model.predict_generator(validation_generator, 2000)
-np.save(open('bottleneck_features/bn_features_validation.npy', 'wb'), bottleneck_features_validation)
-
-train_data = np.load(open('bottleneck_features_and_weights/bn_features_train.npy', 'rb'))
-train_labels = np.array([0] * 1000 + [1] * 1000)
-
-validation_data = np.load(open('bottleneck_features_and_weights/bn_features_validation.npy', 'rb'))
-validation_labels = np.array([0] * 1000 + [1] * 1000)
+model.add(Flatten())
+model.add(Dense(256))
+model.add(Activation('relu'))
+model.add(Dropout(0.6))
+model.add(Dense(1))
+model.add(Activation('sigmoid'))
 
 
-fc_model = Sequential()
-fc_model.add(Flatten(input_shape=train_data.shape[1:]))
-fc_model.add(Dense(64, activation='relu', name='dense_one'))
-fc_model.add(Dropout(0.5, name='dropout_one'))
-fc_model.add(Dense(64, activation='relu', name='dense_two'))
-fc_model.add(Dropout(0.5, name='dropout_two'))
-fc_model.add(Dense(1, activation='sigmoid', name='output'))
 
-fc_model.compile(optimizer='rmsprop',
-              loss='binary_crossentropy',
+
+
+# Компилируем составную нейронную сеть
+model.compile(loss='binary_crossentropy',
+              optimizer=Adam(lr=1e-5),
               metrics=['accuracy'])
 
+# Создаем генератор изображений на основе класса ImageDataGenerator.
+# Генератор делит значения всех пикселов изображения на 255.
+datagen = ImageDataGenerator(rescale=1. / 255)
 
-fc_model.fit(train_data, train_labels,
-            nb_epoch=50, batch_size=32,
-            validation_data=(validation_data, validation_labels))
+# Генератор данных для обучения на основе изображений из каталога
+train_generator = datagen.flow_from_directory(
+    train_dir,
+    target_size=(img_width, img_height),
+    batch_size=batch_size,
+    class_mode='binary')
 
-fc_model.save_weights('bottleneck_features_and_weights/fc_inception_cats_dogs_250.hdf5') # сохраняем веса
-fc_model.evaluate(validation_data, validation_labels)
+# Генератор данных для проверки на основе изображений из каталога
+val_generator = datagen.flow_from_directory(
+    val_dir,
+    target_size=(img_width, img_height),
+    batch_size=batch_size,
+    class_mode='binary')
 
-weights_filename='bottleneck_features_and_weights/fc_inception_cats_dogs_250.hdf5'
+# Генератор данных для тестирования на основе изображений из каталога
+test_generator = datagen.flow_from_directory(
+    test_dir,
+    target_size=(img_width, img_height),
+    batch_size=batch_size,
+    class_mode='binary')
 
-x = Flatten()(inc_model.output)
-x = Dense(64, activation='relu', name='dense_one')(x)
-x = Dropout(0.5, name='dropout_one')(x)
-x = Dense(64, activation='relu', name='dense_two')(x)
-x = Dropout(0.5, name='dropout_two')(x)
-top_model=Dense(1, activation='sigmoid', name='output')(x)
-model = Model(input=inc_model.input, output=top_model)
+# Обучаем модель с использованием генераторов
+def madell():
+    model.fit_generator(
+    train_generator,
+    steps_per_epoch=nb_train_samples // batch_size,
+    epochs=7,
+    validation_data=val_generator,
+    validation_steps=nb_validation_samples // batch_size)
 
+# Генерируем описание модели в формате json
+model_json = model.to_json()
+# Записываем модель в файл
+json_file = open("mnist_model.json", "w")
+json_file.write(model_json)
+json_file.close()
 
-
-weights_filename='bottleneck_features_and_weights/fc_inception_cats_dogs_250.hdf5'
-model.load_weights(weights_filename, by_name=True)
+madell()
+# Оцениваем качество работы сети с помощью генератора
+scores = model.evaluate_generator(test_generator, nb_test_samples // batch_size)
+print("Аккуратность на тестовых данных: %.3f%%" % (scores[1]*100))
+model.save_weights("mnist_model.h5")
