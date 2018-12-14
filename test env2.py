@@ -1,8 +1,9 @@
 # https://habr.com/post/321834/
+# tensorflow-gpu - 11.0
 import tensorflow as tf
 from keras.datasets import mnist
 from keras.utils import np_utils
-from keras.models import model_from_json
+from keras.models import model_from_json, Model
 from keras_preprocessing import image
 from keras_preprocessing.image import ImageDataGenerator
 from tkinter import *
@@ -10,9 +11,15 @@ from PIL import Image, ImageDraw
 import numpy as np
 import cv2, os
 import time
+from scipy.misc import toimage
+import math
+
+def sigmoid(x):
+  return 1 / (1 + math.exp(-x))
 
 def ans(preds):
-    if preds > 0.5:
+    print(preds)
+    if preds > 0.26:
         return "Woman"
     else:
         return "Man"
@@ -25,7 +32,7 @@ json_file.close()
 model = model_from_json(loaded_model_json)
 model.load_weights("mnist_model.h5")
 model.compile(loss="binary_crossentropy", optimizer="SGD", metrics=["accuracy"])
-
+activation_model = Model(inputs=model.input, outputs=model.layers[6].output)
 buffre_dir = './buffer'
 who_is_it = 'ME'
 def nothing(x):
@@ -102,16 +109,18 @@ while True:
     for rect in faces:
 
         (x, y, w, h) = rect
-        cv2.imshow("", frame[y: y + h, x: x + w])
+        #cv2.imshow("", frame[y: y + h, x: x + w])
         frame = cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
         cv2.imwrite('promeszh.jpg', frame[y: y + h, x: x + w])
         img = image.load_img('promeszh.jpg', target_size=(150, 150))
         x = image.img_to_array(img)
         x = np.expand_dims(x, axis=0)
+        x /= 255.
+        activation = activation_model.predict(x)
         preds = model.predict(x)
         #print(ans(preds))
         ans_list.append(ans(preds))
-        if len(ans_list) == 21:
+        if len(ans_list) == 40:
             ans_set = set(ans_list)
             most_common = None
             qty_most_common = 0
@@ -127,15 +136,16 @@ while True:
 
     cv2.imshow("Frame", frame)
 
-    key = cv2.waitKey(10)
+    key = cv2.waitKey(1)
     if rect is rectizm:
         rect = np.array([0, 0, 0, 0])
 
     if key == 27:
         break
     #print(rect.tolist())
-    if len(ans_list)==21:
+    if len(ans_list)==40:
         print("already answer:",most_common)
+        print(ans_list)
         most_common = []
         ans_list = []
         print('wati')
